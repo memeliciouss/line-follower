@@ -19,7 +19,7 @@ float ki=1;
 float kd=1;
 
 void readEncB();
-void setMotor(int dir, int pwmVal, int pwmPin, int m1, int m2);
+void setMotor(int dir, int pwmVal, int pwm, int m1, int m2);
 
 void setup() {
 
@@ -69,7 +69,7 @@ void readEncB(){
 
 
 //sets motor values for (direction, PWM value, PWM pin, motor M1, motor M2)
-void setMotor(int dir, int pwmVal, int pwm, int m1, int m2){
+void setMotor(int dir, int pwmVal, int pwmPin, int m1, int m2){
   analogWrite(pwmPin, pwmVal);
   digitalWrite(m1,(dir==1)*HIGH + (dir==-1)*LOW);
   digitalWrite(m2,(dir==1)*LOW + (dir==-1)*HIGH);
