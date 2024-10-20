@@ -30,29 +30,6 @@ void setup() {
 
 void loop() {
 
-  //target position
-  int target = 1200;
-
-  //deltaTime
-  long currTime=micros();
-  float deltaT = (currTime - prevTime)/1e6;
-  prevTime=currTime;
-
-  //error
-  float e = target - count;
-
-  //e integral
-  eInt = eInt + (e*deltaT);
-
-  //e derivative
-  float de = (e-ePrev)/deltaT;
-  ePrev = e;
-
-  //PID control
-  float u = (kp*e) + (ki*eInt) + (kd*de);
-
-  //controls the motor
-  setMotor((u>=0)? 1:-1, constrain(abs(u),0,255), pwmPin, motor1, motor2)
 }
 
 
