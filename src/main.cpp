@@ -19,13 +19,14 @@ float ki=1;
 float kd=1;
 
 void readEncB();
-void setMotor(int dir, int pwmVal, int pwmPin, int m1, int m2);
+void setMotor(int dir, int pwmVal, int pwm, int m1, int m2);
 
 void setup() {
-
+  Serial.begin(9600);
   pinMode(encA,INPUT);
   pinMode(encB,INPUT);
   attachInterrupt(digitalPinToInterrupt(encA),readEncB,RISING);
+  Serial.print("Setup complete");
   }
 
 void loop() {
@@ -70,8 +71,8 @@ void readEncB(){
 
 
 //sets motor values for (direction, PWM value, PWM pin, motor M1, motor M2)
-void setMotor(int dir, int pwmVal, int pwmPin, int m1, int m2){
-  analogWrite(pwmPin, pwmVal);
+void setMotor(int dir, int pwmVal, int pwm, int m1, int m2){
+  analogWrite(pwm, pwmVal);
   digitalWrite(m1,(dir==1)? HIGH : LOW);
   digitalWrite(m2,(dir==1)? LOW : HIGH);
   }
