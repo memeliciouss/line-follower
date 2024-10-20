@@ -51,8 +51,8 @@ void loop() {
   //PID control
   float u = (kp*e) + (ki*eInt) + (kd*de);
 
-  //sontrol the motor
-  setMotor((u>=0)? 1:-1, constrain(abs(u),0,255), pwmPin, motor1, motor2)
+  //control the motor
+  setMotor((u>=0)? 1:-1, constrain(abs(u),0,255), pwmPin, motor1, motor2);
   
 }
 
@@ -72,6 +72,6 @@ void readEncB(){
 //sets motor values for (direction, PWM value, PWM pin, motor M1, motor M2)
 void setMotor(int dir, int pwmVal, int pwmPin, int m1, int m2){
   analogWrite(pwmPin, pwmVal);
-  digitalWrite(m1,(dir==1)*HIGH + (dir==-1)*LOW);
-  digitalWrite(m2,(dir==1)*LOW + (dir==-1)*HIGH);
+  digitalWrite(m1,(dir==1)? HIGH : LOW);
+  digitalWrite(m2,(dir==1)? LOW : HIGH);
   }
