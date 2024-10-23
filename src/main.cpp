@@ -2,9 +2,9 @@
 
 #define encA 2 //encoder readings from motor
 #define encB 3 //encoder readings from motor
-#define motor1 4 //motor pin M1
-#define motor2 5 //motor pin M2
-#define pwmPin 6 //motor driver PWM input
+#define m_in1 4 //motor out pwm
+#define m_in2 5 //motor out dir
+
 
 volatile int count=0;
 
@@ -53,7 +53,7 @@ void loop() {
   float u = (kp*e) + (ki*eInt) + (kd*de);
 
   //control the motor
-  setMotor((u>=0)? 1:-1, constrain(abs(u),0,255), pwmPin, motor1, motor2);
+  setMotor((u>=0)? 1:-1, constrain(abs(u),0,255), m_in1, m_in2);
   
 }
 
@@ -70,9 +70,8 @@ void readEncB(){
 }
 
 
-//sets motor values for (direction, PWM value, PWM pin, motor M1, motor M2)
-void setMotor(int dir, int pwmVal, int pwm, int m1, int m2){
-  analogWrite(pwm, pwmVal);
-  digitalWrite(m1,(dir==1)? HIGH : LOW);
-  digitalWrite(m2,(dir==1)? LOW : HIGH);
+//sets motor values for (direction, PWM value, PWM pin, direction pin)
+void setMotor(int dir, int pwmVal, int pwm_pin, int dir_pin){
+  analogWrite(pwm_pin, pwmVal);
+  digitalWrite(dir_pin,(dir==1)? HIGH : LOW);
   }
