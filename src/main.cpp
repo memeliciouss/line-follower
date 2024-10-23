@@ -19,7 +19,7 @@ float ki=1;
 float kd=1;
 
 void readEncB();
-void setMotor(int dir, int pwmVal, int pwm, int m1, int m2);
+void setMotor(int dir, int pwmVal, int pwm_pin, int dir_pin);
 
 void setup() {
   Serial.begin(9600);
