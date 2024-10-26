@@ -1,9 +1,9 @@
 #include <Arduino.h>
 
 #define encA 2 //encoder readings from motor
-#define encB 3 //encoder readings from motor
-#define m_in1 4 //motor out pwm
-#define m_in2 5 //motor out dir
+#define encB 11 //encoder readings from motor
+#define m_in1 5 //motor out pwm
+#define m_in2 6 //motor out dir
 
 
 volatile int count=0;
@@ -32,7 +32,7 @@ void setup() {
 void loop() {
 
   //target position
-  int target = 1200;
+  int target = 250*sin(prevTime/1e6);
 
   //deltaTime
   long currTime=micros();
