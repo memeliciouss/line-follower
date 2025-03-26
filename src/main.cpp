@@ -13,6 +13,11 @@
 #define IR_CENTER A1
 #define IR_RIGHT A2
 
+// Set OCR1A to 32000 (32000/256) for interrupts at every 2 mili seconds
+int comp_match = 125;  
+
+int motorFlagCount = 0;
+
 // Volatile variables for precise, interrupt-driven control
 volatile long leftEncoderCount = 0;
 volatile long rightEncoderCount = 0;
@@ -56,7 +61,7 @@ void setup() {
   TCCR1B &= ~(1 << CS10);
   
   // Set OCR1A to 32000 (32000/256) for interrupts at every 2 mili seconds
-  OCR1A = 125;
+  OCR1A = comp_match;
   
   // Enable Timer1 compare interrupt
   TIMSK1 |= (1 << OCIE1A);
@@ -82,8 +87,18 @@ ISR(TIMER1_COMPA_vect) {
   int centerSensor = analogRead(IR_CENTER);
   int rightSensor = analogRead(IR_RIGHT);
   
-  // Calculate error
-  error = calculateLineError(leftSensor, centerSensor, rightSensor);
+  if (motorFlagCount == 4) {
+    SetMotor(leftSensor, centerSensor, rightSensor);
+	motorFlagCount=0;
+} else {
+    motorFlagCount++;
+}
+
+}
+
+void SetMotor(int leftSensor, int centerSensor, int rightSensor){
+	//calculate error
+	error = calculateLineError(leftSensor, centerSensor, rightSensor);
   
   // PID
   float deltaTime = 0.01; // 100 Hz
@@ -111,6 +126,8 @@ ISR(TIMER1_COMPA_vect) {
   
   // Update last error
   lastError = error;
+
+  
 }
 
 // Encoder reading functions
@@ -147,6 +164,5 @@ float calculateLineError(int leftSensor, int centerSensor, int rightSensor) {
     return 1.0; // Turn right
   }
 
-  
   return 0; // Default to going straight
 }
