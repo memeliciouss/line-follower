@@ -132,23 +132,21 @@ void setMotorSpeed(int pwmPin, int dirPin, int speed) {
 
 // Line error calculation function
 float calculateLineError(int leftSensor, int centerSensor, int rightSensor) {
-  const int IR_THRESHOLD = 500;
-  
-  if (leftSensor > IR_THRESHOLD && centerSensor > IR_THRESHOLD && rightSensor > IR_THRESHOLD) {
-    return 0; // All sensors on line - go straight
+  //straight
+  if (centerSensor == HIGH && leftSensor == LOW && rightSensor == LOW) {
+    return 0; // Go straight
   }
   
-  if (leftSensor > IR_THRESHOLD && rightSensor < IR_THRESHOLD) {
+  //left side
+  if (leftSensor == HIGH && rightSensor == LOW) {
     return -1.0; // Turn left
   }
   
-  if (rightSensor > IR_THRESHOLD && leftSensor < IR_THRESHOLD) {
+  // right side
+  if (rightSensor == HIGH && leftSensor == LOW) {
     return 1.0; // Turn right
   }
+
   
-  if (centerSensor > IR_THRESHOLD) {
-    return (leftSensor - rightSensor) * 0.5;
-  }
-  
-  return 0;
+  return 0; // Default to going straight
 }
