@@ -16,7 +16,11 @@
 // Set OCR1A to 32000 (32000/256) for interrupts at every 2 mili seconds
 int comp_match = 125;  
 
+// to give motor interrupts
 int motorFlagCount = 0;
+
+// Base speed
+int baseSpeed = 100;
 
 // Volatile variables for precise, interrupt-driven control
 volatile long leftEncoderCount = 0;
@@ -114,8 +118,7 @@ void SetMotor(int leftSensor, int centerSensor, int rightSensor){
                     (LINE_KI * errorIntegral) + 
                     (LINE_KD * errorDerivative);
   
-  // Base speed
-  int baseSpeed = 100;
+
   
   // Calculate motor speeds
   leftSpeed = constrain(baseSpeed + pidOutput, 0, 255);
