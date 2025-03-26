@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-// Motor and Sensor Pin Definitions (same as before)
+// Motor and Sensor Pin defines
 #define ENC_A1 2
 #define ENC_B1 3
 #define M1_IN1 4
@@ -13,16 +13,16 @@
 #define IR_CENTER A1
 #define IR_RIGHT A2
 
-// Set OCR1A to 32000 (32000/256) for interrupts at every 2 mili seconds
+// Set OCR1A to 125 (2ms*16MHz/256) for interrupts at every 2 mili seconds
 int comp_match = 125;  
 
-// to give motor interrupts
+//to time motors
 int motorFlagCount = 0;
 
 // Base speed
 int baseSpeed = 100;
 
-// Volatile variables for precise, interrupt-driven control
+// encoder motors
 volatile long leftEncoderCount = 0;
 volatile long rightEncoderCount = 0;
 
@@ -36,14 +36,12 @@ const float LINE_KP = 2.0;
 const float LINE_KI = 0.1;
 const float LINE_KD = 1.0;
 
-// Persistent PID tracking
 float lastError = 0;
 float errorIntegral = 0;
 
 void setup() {
   Serial.begin(9600);
   
-  // Pin mode setup
   pinMode(ENC_A1, INPUT);
   pinMode(ENC_B1, INPUT);
   pinMode(ENC_A2, INPUT);
@@ -64,7 +62,7 @@ void setup() {
   TCCR1B &= ~(1 << CS11);
   TCCR1B &= ~(1 << CS10);
   
-  // Set OCR1A to 32000 (32000/256) for interrupts at every 2 mili seconds
+  // Set OCR1A for output compare match
   OCR1A = comp_match;
   
   // Enable Timer1 compare interrupt
@@ -74,23 +72,18 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available()) {
-    Serial.print("Left Encoder: ");
-    Serial.print(leftEncoderCount);
-    Serial.print(" | Right Encoder: ");
-    Serial.print(rightEncoderCount);
-    Serial.print(" | Current Error: ");
-    Serial.println(error);
-  }
+  
 }
 
 // Interrupt Service Routine
 ISR(TIMER1_COMPA_vect) {
+
   // Read IR Sensors
   int leftSensor = analogRead(IR_LEFT);
   int centerSensor = analogRead(IR_CENTER);
   int rightSensor = analogRead(IR_RIGHT);
   
+  //call motor setup
   if (motorFlagCount == 4) {
     SetMotor(leftSensor, centerSensor, rightSensor);
 	motorFlagCount=0;
@@ -129,8 +122,6 @@ void SetMotor(int leftSensor, int centerSensor, int rightSensor){
   
   // Update last error
   lastError = error;
-
-  
 }
 
 // Encoder reading functions
@@ -167,5 +158,5 @@ float calculateLineError(int leftSensor, int centerSensor, int rightSensor) {
     return 1.0; // Turn right
   }
 
-  return 0; // Default to going straight
+  return 1.0; // Default to turn right
 }
