@@ -47,8 +47,6 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(ENC_A1), readLeftEncoder, RISING);
   attachInterrupt(digitalPinToInterrupt(ENC_A2), readRightEncoder, RISING);
   
- 
-  
   TCCR1A = 0;
   TCCR1B = 0;
   
@@ -57,7 +55,7 @@ void setup() {
   TCCR1B &= ~(1 << CS11);
   TCCR1B &= ~(1 << CS10);
   
-  // 16MHz / (256 * 100Hz) - 1 = 624
+  // Set OCR1A to 32000 (32000/256) for interrupts at every 2 mili seconds
   OCR1A = 125;
   
   // Enable Timer1 compare interrupt
@@ -67,9 +65,7 @@ void setup() {
 }
 
 void loop() {
-  // Lightweight loop - mostly for serial debugging
   if (Serial.available()) {
-    // Optional serial commands or debugging
     Serial.print("Left Encoder: ");
     Serial.print(leftEncoderCount);
     Serial.print(" | Right Encoder: ");
@@ -79,17 +75,17 @@ void loop() {
   }
 }
 
-// Efficient Interrupt Service Routine
+// Interrupt Service Routine
 ISR(TIMER1_COMPA_vect) {
   // Read IR Sensors
   int leftSensor = analogRead(IR_LEFT);
   int centerSensor = analogRead(IR_CENTER);
   int rightSensor = analogRead(IR_RIGHT);
   
-  // Calculate line error
+  // Calculate error
   error = calculateLineError(leftSensor, centerSensor, rightSensor);
   
-  // PID Calculation inside interrupt
+  // PID
   float deltaTime = 0.01; // 100 Hz
   
   // Integral term
@@ -98,7 +94,7 @@ ISR(TIMER1_COMPA_vect) {
   // Derivative term
   float errorDerivative = (error - lastError) / deltaTime;
   
-  // Compute PID output
+  // Calculate PID output
   float pidOutput = (LINE_KP * error) + 
                     (LINE_KI * errorIntegral) + 
                     (LINE_KD * errorDerivative);
@@ -110,7 +106,6 @@ ISR(TIMER1_COMPA_vect) {
   leftSpeed = constrain(baseSpeed + pidOutput, 0, 255);
   rightSpeed = constrain(baseSpeed - pidOutput, 0, 255);
   
-  // Directly set motor speeds in interrupt
   setMotorSpeed(M1_IN1, M1_IN2, leftSpeed);
   setMotorSpeed(M2_IN1, M2_IN2, rightSpeed);
   
@@ -129,7 +124,7 @@ void readRightEncoder() {
   rightEncoderCount += (b > 0) ? 1 : -1;
 }
 
-// Motor speed setting function
+// Setting motor speed
 void setMotorSpeed(int pwmPin, int dirPin, int speed) {
   digitalWrite(dirPin, (speed >= 0) ? HIGH : LOW);
   analogWrite(pwmPin, abs(speed));
