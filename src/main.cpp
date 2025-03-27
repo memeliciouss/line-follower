@@ -25,6 +25,7 @@ int baseSpeed = 100;
 // encoder motors
 volatile long leftEncoderCount = 0;
 volatile long rightEncoderCount = 0;
+float prevT=0;
 
 // Line following variables
 volatile float error = 0;
@@ -111,8 +112,6 @@ void SetMotor(int leftSensor, int centerSensor, int rightSensor){
                     (LINE_KI * errorIntegral) + 
                     (LINE_KD * errorDerivative);
   
-
-  
   // Calculate motor speeds
   leftSpeed = constrain(baseSpeed + pidOutput, 0, 255);
   rightSpeed = constrain(baseSpeed - pidOutput, 0, 255);
@@ -128,6 +127,10 @@ void SetMotor(int leftSensor, int centerSensor, int rightSensor){
 void readLeftEncoder() {
   int b = digitalRead(ENC_B1);
   leftEncoderCount += (b > 0) ? 1 : -1;
+  long currT=micros();
+  float deltaT=((float)(currT-prevT))/1.0e6;
+  float speed=((b > 0) ? 1 : -1)/deltaT;
+  prevT=currT;
 }
 
 void readRightEncoder() {
