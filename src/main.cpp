@@ -5,10 +5,12 @@
 #define ENC_B1 3
 #define M1_IN1 4
 #define M1_IN2 5
+
 #define ENC_A2 18
 #define ENC_B2 19
 #define M2_IN1 6
 #define M2_IN2 7
+
 #define IR_LEFT A0
 #define IR_CENTER A1
 #define IR_RIGHT A2
@@ -29,25 +31,34 @@ float prevT = 0;
 
 volatile float left_speed = 0;
 volatile float right_speed = 0;
+float left_targetSpeed = 0;
+float right_targetSpeed = 0;
+
 long left_prevT = 0;
 long right_prevT = 0;
 
-// Line following variables
-volatile float error = 0;
-volatile int leftSpeed = 100;
-volatile int rightSpeed = 100;
+// Line following PID variables
+volatile float error_line = 0;
+float errorIntegral_line = 0;
+float prevError_line = 0;
+
+// Speed PID variables
+volatile float error_speed = 0;
+float errorIntegral_speed = 0;
+float prevError_speed = 0;
 
 // PID constants
-const float LINE_KP = 2.0;
-const float LINE_KI = 0.1;
-const float LINE_KD = 1.0;
+const float Kp_line = 2.0;
+const float Ki_line = 0.1;
+const float Kd_line = 1.0;
 
-float lastError = 0;
-float errorIntegral = 0;
+const float Kp_speed = 0.8;
+const float Ki_speed = 0.05;
+const float Kd_speed = 0.1;
+
 
 void setup()
 {
-  Serial.begin(9600);
 
   pinMode(ENC_A1, INPUT);
   pinMode(ENC_B1, INPUT);
@@ -61,6 +72,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(ENC_A1), readLeftEncoder, RISING);
   attachInterrupt(digitalPinToInterrupt(ENC_A2), readRightEncoder, RISING);
 
+  // Reset timer control register A
   TCCR1A = 0;
   TCCR1B = 0;
 
@@ -75,6 +87,7 @@ void setup()
   // Enable Timer1 compare interrupt
   TIMSK1 |= (1 << OCIE1A);
 
+  // Enable global interrupts
   sei();
 }
 
@@ -104,35 +117,39 @@ ISR(TIMER1_COMPA_vect)
   }
 }
 
+// Set Motors 
 void SetMotor(int leftSensor, int centerSensor, int rightSensor)
 {
 
   // calculate error
-  error = calculateLineError(leftSensor, centerSensor, rightSensor);
-
-  // PID
+  error_line = calculateLineError(leftSensor, centerSensor, rightSensor);
   float deltaTime = 0.01; // 100 Hz
 
   // Integral term
-  errorIntegral += error * deltaTime;
+  errorIntegral_line += error_line * deltaTime;
 
   // Derivative term
-  float errorDerivative = (error - lastError) / deltaTime;
+  float errorDerivative_line = (error_line - prevError_line) / deltaTime;
 
   // Calculate PID output
-  float pidOutput = (LINE_KP * error) +
-                    (LINE_KI * errorIntegral) +
-                    (LINE_KD * errorDerivative);
+  float pidOutput = (Kp_line * error_line) +
+                    (Ki_line * errorIntegral_line) +
+                    (Kd_line * errorDerivative_line);
 
   // Calculate motor speeds
-  leftSpeed = constrain(baseSpeed + pidOutput, 0, 255);
-  rightSpeed = constrain(baseSpeed - pidOutput, 0, 255);
+  left_targetSpeed = constrain(baseSpeed + pidOutput, 0, 255);
+  right_targetSpeed = constrain(baseSpeed - pidOutput, 0, 255);
 
-  setMotorSpeed(M1_IN1, M1_IN2, leftSpeed);
-  setMotorSpeed(M2_IN1, M2_IN2, rightSpeed);
+  // Compute req speed in terms of PWM
+  int left_pwm = computeSpeedPID(left_targetSpeed, left_speed);
+  int right_pwm = computeSpeedPID(right_targetSpeed, right_speed);
 
+  // Set Motors
+  setMotorSpeed(M1_IN1, M1_IN2, left_pwm);
+  setMotorSpeed(M2_IN1, M2_IN2, right_pwm);
+  
   // Update last error
-  lastError = error;
+  prevError_line = error_line;
 }
 
 // Encoder reading functions
@@ -163,7 +180,7 @@ void setMotorSpeed(int pwmPin, int dirPin, int speed)
   analogWrite(pwmPin, abs(speed));
 }
 
-// Line error calculation function
+// Line error calculation
 float calculateLineError(int leftSensor, int centerSensor, int rightSensor)
 {
   // straight
@@ -185,4 +202,27 @@ float calculateLineError(int leftSensor, int centerSensor, int rightSensor)
   }
 
   return 1.0; // Default to turn right
+}
+
+// Compute PWM from req speed using PID
+int computeSpeedPID(float targetSpeed, float currSpeed)
+{
+  // calculate error
+  error_speed = targetSpeed - currSpeed;
+  float deltaT = 0.01; // 100 Hz
+
+  // Integral term
+  errorIntegral_speed += error_speed * deltaT;
+
+  // Derivative term
+  float errorDerivative_speed = (error_speed - prevError_speed) / deltaT;
+
+  // PID output
+  float output = (Kp_speed * error_speed) +
+                 (Ki_speed * errorIntegral_speed) +
+                 (Kd_speed * errorDerivative_speed);
+
+
+  int pwm = constrain((int)output,-255,255);
+  return pwm;
 }
