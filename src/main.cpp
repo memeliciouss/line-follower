@@ -1,19 +1,22 @@
 #include <Arduino.h>
 
 // Motor and Sensor Pin defines
-#define ENC_A1 2
-#define ENC_B1 3
+
+// Left motor
+#define ENC_A1 3
+#define ENC_B1 12
 #define M1_IN1 4
-#define M1_IN2 5
+#define M1_IN2 7
 
-#define ENC_A2 18
-#define ENC_B2 19
+// Right motor
+#define ENC_A2 2
+#define ENC_B2 11
 #define M2_IN1 6
-#define M2_IN2 7
+#define M2_IN2 5
 
-#define IR_LEFT A0
-#define IR_CENTER A1
-#define IR_RIGHT A2
+#define IR_LEFT A2
+#define IR_CENTER A0
+#define IR_RIGHT A1
 
 // Set OCR1A to 125 (2ms*16MHz/256) for interrupts at every 2 mili seconds
 int comp_match = 125;
