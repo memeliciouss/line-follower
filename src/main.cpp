@@ -18,6 +18,8 @@
 #define IR_CENTER A0
 #define IR_RIGHT A1
 
+// Set threshold value for IR sensors
+int threshold = 512;
 // Set OCR1A to 125 (2ms*16MHz/256) for interrupts at every 2 mili seconds
 int comp_match = 125;
 
@@ -187,19 +189,19 @@ void setMotorSpeed(int pwmPin, int dirPin, int speed)
 float calculateLineError(int leftSensor, int centerSensor, int rightSensor)
 {
   // straight
-  if (centerSensor == HIGH && leftSensor == LOW && rightSensor == LOW)
+  if (centerSensor > threshold && leftSensor < threshold && rightSensor <threshold)
   {
     return 0; // Go straight
   }
 
   // left side
-  if (leftSensor == HIGH && rightSensor == LOW)
+  if (leftSensor > threshold && rightSensor < threshold)
   {
     return -1.0; // Turn left
   }
 
   // right side
-  if (rightSensor == HIGH && leftSensor == LOW)
+  if (leftSensor < threshold && rightSensor > threshold)
   {
     return 1.0; // Turn right
   }
